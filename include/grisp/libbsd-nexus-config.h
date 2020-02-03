@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 embedded brains GmbH.  All rights reserved.
+ * Copyright (c) 2013-2020 embedded brains GmbH.  All rights reserved.
  *
  *  embedded brains GmbH
  *  Dornierstr. 4
@@ -37,14 +37,18 @@
 #include <rtems/bsd/bsd.h>
 #include <machine/rtems-bsd-nexus-bus.h>
 
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
 #include <libchip/chip.h>
-
 RTEMS_BSD_DRIVER_AT91_MCI0((unsigned long)HSMCI, HSMCI_IRQn);
+#endif
+
 RTEMS_BSD_DRIVER_MMC;
 #ifndef GRISP_IS_BOOTLOADER
 RTEMS_BSD_DRIVER_USB;
 RTEMS_BSD_DRIVER_USB_MASS;
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
 RTEMS_BSD_DRIVER_USB_SAF1761_OTG((unsigned long)EBI_CS0_ADDR, PIOC_IRQn);
+#endif
 SYSINIT_MODULE_REFERENCE(wlan_ratectl_none);
 SYSINIT_MODULE_REFERENCE(wlan_sta);
 SYSINIT_MODULE_REFERENCE(wlan_amrr);
