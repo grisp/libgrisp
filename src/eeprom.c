@@ -30,7 +30,10 @@
  */
 
 #include <grisp/eeprom.h>
+#include <bsp.h>
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
 #include <bsp/i2c.h>
+#endif
 #include <dev/i2c/eeprom.h>
 #include <dev/i2c/i2c.h>
 #include <fcntl.h>
@@ -50,6 +53,7 @@ grisp_eeprom_init(void)
 {
 	int rv;
 
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
 	rv = i2c_dev_register_eeprom(
 	    ATSAM_I2C_0_BUS_PATH,
 	    &eeprom_path[0],
@@ -59,6 +63,10 @@ grisp_eeprom_init(void)
 	    EEPROM_SIZE,
 	    0
 	);
+#elif defined(LIBBSP_ARM_IMX_BSP_H)
+#warning FIXME: Implement
+	rv = 0;
+#endif
 	return rv;
 }
 

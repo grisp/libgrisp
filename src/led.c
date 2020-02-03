@@ -29,9 +29,12 @@
  * SUCH DAMAGE.
  */
 
+#include <bsp.h>
 #include <assert.h>
 
 #include <grisp/led.h>
+
+#ifdef LIBBSP_ARM_ATSAM_BSP_H
 #include <grisp/pin-config.h>
 
 static const Pin led_rgb1_red = GRISP_LED_1R;
@@ -85,6 +88,19 @@ grisp_led_set(int led_nr, bool r, bool g, bool b)
 
 	return RTEMS_SUCCESSFUL;
 }
+
+#elif defined(LIBBSP_ARM_IMX_BSP_H)
+rtems_status_code
+grisp_led_set(int led_nr, bool r, bool g, bool b)
+{
+	(void) led_nr;
+	(void) r;
+	(void) g;
+	(void) b;
+#warning FIXME: Implement
+	return RTEMS_SUCCESSFUL;
+}
+#endif
 
 void
 grisp_led_set1(bool r, bool g, bool b)

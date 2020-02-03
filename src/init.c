@@ -54,7 +54,11 @@
 #include <bsp/irq.h>
 
 #include <grisp/init.h>
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
 #include <grisp/pin-config.h>
+#elif defined(LIBBSP_ARM_IMX_BSP_H)
+#include <rtems/dhcpcd.h>
+#endif
 
 #define PRIO_INIT_TASK		(RTEMS_MAXIMUM_PRIORITY - 1)
 #define PRIO_MEDIA_SERVER	200
@@ -180,6 +184,7 @@ grisp_init_network_ifconfig_lo0(void)
 	assert(exit_code == EX_OK);
 }
 
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
 static void
 network_dhcpcd_task(rtems_task_argument arg)
 {
@@ -226,6 +231,39 @@ grisp_init_dhcpcd(rtems_task_priority prio)
 	grisp_init_dhcpcd_with_config(prio, NULL);
 }
 
+#elif defined(LIBBSP_ARM_IMX_BSP_H)
+void
+grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf)
+{
+	static char *argv_no_conf[] = { "dhcpcd", NULL };
+	static char *argv_conf[] = { "dhcpcd", "-f", NULL, NULL };
+	char *conf_copy = NULL;
+	static rtems_dhcpcd_config config = {};
+
+	if (conf != NULL) {
+		conf_copy = strdup(conf);
+	}
+	if (conf_copy != NULL) {
+		argv_conf[2] = conf_copy;
+		config.argv = argv_conf;
+		config.argc = RTEMS_BSD_ARGC(argv_conf);
+	} else {
+		config.argv = argv_no_conf;
+		config.argc = RTEMS_BSD_ARGC(argv_no_conf);
+	}
+
+	config.priority = prio;
+
+	rtems_dhcpcd_start(&config);
+}
+
+void
+grisp_init_dhcpcd(rtems_task_priority prio)
+{
+	grisp_init_dhcpcd_with_config(prio, NULL);
+}
+#endif
+
 void
 grisp_init_libbsd(void)
 {
@@ -244,12 +282,7 @@ grisp_init_libbsd(void)
 	assert(sc == RTEMS_SUCCESSFUL);
 }
 
-static inline uint32_t
-ns_to_mck_ticks(uint32_t ns)
-{
-	return (ns * (BOARD_MCK / 1000)) / 1000;
-}
-
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
 void
 grisp_saf1761_basic_init(void)
 {
@@ -363,3 +396,22 @@ grisp_wlan_power_down(void)
 	const Pin wlan_en = GRISP_WLAN_EN;
 	PIO_Set(&wlan_en);
 }
+#elif defined(LIBBSP_ARM_IMX_BSP_H)
+void
+grisp_saf1761_basic_init(void)
+{
+	/* Not necessary for GRiSP2 */
+}
+
+void
+grisp_wlan_power_up(void)
+{
+#warning FIXME: Implement
+}
+
+void
+grisp_wlan_power_down(void)
+{
+#warning FIXME: Implement
+}
+#endif
