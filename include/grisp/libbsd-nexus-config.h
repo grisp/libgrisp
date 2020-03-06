@@ -38,6 +38,9 @@
 #include <rtems/bsd/modules.h>
 #include <machine/rtems-bsd-nexus-bus.h>
 
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
+#include <libchip/chip.h>
+
 RTEMS_BSD_DRIVER_USB;
 RTEMS_BSD_DRIVER_USB_MASS;
 SYSINIT_MODULE_REFERENCE(wlan_ratectl_none);
@@ -49,8 +52,6 @@ SYSINIT_MODULE_REFERENCE(wlan_ccmp);
 SYSINIT_DRIVER_REFERENCE(rtwn_usb, uhub);
 SYSINIT_REFERENCE(rtwn_rtl8188eufw);
 
-#if defined(LIBBSP_ARM_ATSAM_BSP_H)
-#include <libchip/chip.h>
 RTEMS_BSD_DRIVER_AT91_MCI0((unsigned long)HSMCI, HSMCI_IRQn);
 
 RTEMS_BSD_DRIVER_MMC;
@@ -59,17 +60,8 @@ RTEMS_BSD_DRIVER_USB_SAF1761_OTG((unsigned long)EBI_CS0_ADDR, PIOC_IRQn);
 #endif /* GRISP_IS_BOOTLOADER */
 
 #elif defined(LIBBSP_ARM_IMX_BSP_H)
-RTEMS_BSD_DEFINE_NEXUS_DEVICE(ofwbus, 0, 0, NULL);
-SYSINIT_DRIVER_REFERENCE(simplebus, ofwbus);
-
-SYSINIT_DRIVER_REFERENCE(ccm, simplebus);
-
-SYSINIT_DRIVER_REFERENCE(ffec, simplebus);
-SYSINIT_DRIVER_REFERENCE(ksz8091rnb, miibus);
-
-SYSINIT_DRIVER_REFERENCE(imx51_gpio, simplebus);
-SYSINIT_DRIVER_REFERENCE(sdhci_fsl, simplebus);
-RTEMS_BSD_DRIVER_MMC;
+SYSINIT_DRIVER_REFERENCE(regfix, simplebus);
+#include <bsp/nexus-devices.h>
 #endif
 
 #endif /* GRISP_LIBBSD_NEXUS_CONFIG_H */
