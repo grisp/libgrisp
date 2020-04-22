@@ -55,13 +55,17 @@ wpa_supplicant_watcher_task(rtems_task_argument arg)
 	int argc;
 	char ** argv;
 	int err;
-	(void) arg;
+	grisp_check_and_create_wlandev create_wlan =
+	    (grisp_check_and_create_wlandev) arg;
 
 	argv = wpa_supplicant_cmd;
 	argc = sizeof(wpa_supplicant_cmd)/sizeof(wpa_supplicant_cmd[0])-1;
 
 	while (true) {
 		rtems_task_wake_after(RTEMS_MILLISECONDS_TO_TICKS(2000));
+		if (create_wlan != NULL) {
+			create_wlan();
+		}
 		err = rtems_bsd_command_wpa_supplicant(argc, argv);
 		printf("wpa_supplicant returned with %d\n", err);
 	}
@@ -79,7 +83,11 @@ static int file_exists(const char *filename) {
  * by a proper event handling.
  */
 void
-grisp_init_wpa_supplicant(const char *conf_file, rtems_task_priority prio)
+grisp_init_wpa_supplicant(
+	const char *conf_file,
+	rtems_task_priority prio,
+	grisp_check_and_create_wlandev create_wlan
+)
 {
 	char *conf;
 	size_t pos;
@@ -106,6 +114,7 @@ grisp_init_wpa_supplicant(const char *conf_file, rtems_task_priority prio)
 	);
 	assert(sc == RTEMS_SUCCESSFUL);
 
-	sc = rtems_task_start(id, wpa_supplicant_watcher_task, 0);
+	sc = rtems_task_start(id, wpa_supplicant_watcher_task,
+	    (rtems_task_argument) create_wlan);
 	assert(sc == RTEMS_SUCCESSFUL);
 }

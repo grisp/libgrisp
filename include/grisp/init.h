@@ -38,6 +38,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+typedef void (*grisp_check_and_create_wlandev)(void);
+
 void	grisp_init_libbsd(void);
 void	grisp_init_sd_card(void);
 void	grisp_init_lower_self_prio(void);
@@ -46,7 +48,8 @@ void	grisp_saf1761_basic_init(void);
 void	grisp_wlan_power_up(void);
 void	grisp_wlan_power_down(void);
 void	grisp_init_wpa_supplicant(const char *conf_file,
-	    rtems_task_priority prio);
+	    rtems_task_priority prio,
+	    grisp_check_and_create_wlandev create_wlan);
 void	grisp_init_dhcpcd(rtems_task_priority prio);
 void	grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf);
 
