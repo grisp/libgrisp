@@ -57,12 +57,30 @@ wpa_supplicant_watcher_task(rtems_task_argument arg)
 	int err;
 	grisp_check_and_create_wlandev create_wlan =
 	    (grisp_check_and_create_wlandev) arg;
+	time_t lasttime = 0;
+	const time_t sleep_min = 1;
+	const time_t sleep_max = 60;
+	const time_t backtomin = 2*sleep_max;
+	time_t delay_in_seconds = sleep_min;
 
 	argv = wpa_supplicant_cmd;
 	argc = sizeof(wpa_supplicant_cmd)/sizeof(wpa_supplicant_cmd[0])-1;
 
 	while (true) {
-		rtems_task_wake_after(RTEMS_MILLISECONDS_TO_TICKS(2000));
+		time_t now = rtems_clock_get_uptime_seconds();
+		if ((now - lasttime) > backtomin) {
+			delay_in_seconds = sleep_min;
+		} else {
+			delay_in_seconds *= 2;
+			if (delay_in_seconds > sleep_max) {
+				delay_in_seconds = sleep_max;
+			}
+		}
+		lasttime = now;
+		printf("wpa_supplicant: restart after %lld seconds\n",
+		    delay_in_seconds);
+		rtems_task_wake_after((rtems_interval)
+		    RTEMS_MILLISECONDS_TO_TICKS(delay_in_seconds * 1000));
 		if (create_wlan != NULL) {
 			create_wlan();
 		}
