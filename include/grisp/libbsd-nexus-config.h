@@ -62,6 +62,7 @@ RTEMS_BSD_DRIVER_USB_SAF1761_OTG((unsigned long)EBI_CS0_ADDR, PIOC_IRQn);
 
 #elif defined(LIBBSP_ARM_IMX_BSP_H)
 SYSINIT_DRIVER_REFERENCE(regfix, simplebus);
+SYSINIT_DRIVER_REFERENCE(ksz8091rnb, miibus);
 #include <bsp/nexus-devices.h>
 #endif
 
