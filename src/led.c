@@ -90,14 +90,57 @@ grisp_led_set(int led_nr, bool r, bool g, bool b)
 }
 
 #elif defined(LIBBSP_ARM_IMX_BSP_H)
+#include <bsp/fdt.h>
+#include <libfdt.h>
+#include <pthread.h>
+#include <bsp/imx-gpio.h>
+
+static struct {
+	struct imx_gpio_pin red;
+	struct imx_gpio_pin green;
+	struct imx_gpio_pin blue;
+} leds[2];
+
+static void
+grisp2_init_led_by_fdt(
+	struct imx_gpio_pin *led,
+	const void* fdt,
+	const char *fdt_path
+)
+{
+	rtems_status_code sc;
+	int node;
+	node = fdt_path_offset(fdt, fdt_path);
+	sc = imx_gpio_init_from_fdt_property(led,
+	    node, "gpios", IMX_GPIO_MODE_OUTPUT, 0);
+	assert(sc == RTEMS_SUCCESSFUL);
+	imx_gpio_set_output(led, 0);
+}
+
+static void
+grisp2_init_leds(void)
+{
+	const void *fdt;
+
+	fdt = bsp_fdt_get();
+	grisp2_init_led_by_fdt(&leds[0].red,   fdt, "/leds/grisp-rgb1-red");
+	grisp2_init_led_by_fdt(&leds[0].green, fdt, "/leds/grisp-rgb1-green");
+	grisp2_init_led_by_fdt(&leds[0].blue,  fdt, "/leds/grisp-rgb1-blue");
+	grisp2_init_led_by_fdt(&leds[1].red,   fdt, "/leds/grisp-rgb2-red");
+	grisp2_init_led_by_fdt(&leds[1].green, fdt, "/leds/grisp-rgb2-green");
+	grisp2_init_led_by_fdt(&leds[1].blue,  fdt, "/leds/grisp-rgb2-blue");
+}
+
 rtems_status_code
 grisp_led_set(int led_nr, bool r, bool g, bool b)
 {
-	(void) led_nr;
-	(void) r;
-	(void) g;
-	(void) b;
-#warning FIXME: Implement
+	static pthread_once_t once = PTHREAD_ONCE_INIT;
+	pthread_once(&once, grisp2_init_leds);
+
+	imx_gpio_set_output(&leds[led_nr-1].red,   r ? 1 : 0);
+	imx_gpio_set_output(&leds[led_nr-1].green, g ? 1 : 0);
+	imx_gpio_set_output(&leds[led_nr-1].blue,  b ? 1 : 0);
+
 	return RTEMS_SUCCESSFUL;
 }
 #endif
