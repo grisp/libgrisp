@@ -89,17 +89,27 @@ grisp_led_set(int led_nr, bool r, bool g, bool b)
 	return RTEMS_SUCCESSFUL;
 }
 
+void
+grisp_led_set_som(bool on)
+{
+	/* LED doesn't exist */
+	(void) on;
+}
+
 #elif defined(LIBBSP_ARM_IMX_BSP_H)
 #include <bsp/fdt.h>
 #include <libfdt.h>
 #include <pthread.h>
 #include <bsp/imx-gpio.h>
 
+#define LED_SOM 0
+
 static struct {
 	struct imx_gpio_pin red;
 	struct imx_gpio_pin green;
 	struct imx_gpio_pin blue;
 } leds[2];
+struct imx_gpio_pin led_som;
 
 static void
 grisp2_init_led_by_fdt(
@@ -129,6 +139,7 @@ grisp2_init_leds(void)
 	grisp2_init_led_by_fdt(&leds[1].red,   fdt, "/leds/grisp-rgb2-red");
 	grisp2_init_led_by_fdt(&leds[1].green, fdt, "/leds/grisp-rgb2-green");
 	grisp2_init_led_by_fdt(&leds[1].blue,  fdt, "/leds/grisp-rgb2-blue");
+	grisp2_init_led_by_fdt(&led_som,       fdt, "/leds/phycore-green");
 }
 
 rtems_status_code
@@ -137,11 +148,23 @@ grisp_led_set(int led_nr, bool r, bool g, bool b)
 	static pthread_once_t once = PTHREAD_ONCE_INIT;
 	pthread_once(&once, grisp2_init_leds);
 
-	imx_gpio_set_output(&leds[led_nr-1].red,   r ? 1 : 0);
-	imx_gpio_set_output(&leds[led_nr-1].green, g ? 1 : 0);
-	imx_gpio_set_output(&leds[led_nr-1].blue,  b ? 1 : 0);
+	if (led_nr != LED_SOM) {
+		imx_gpio_set_output(&leds[led_nr-1].red,   r ? 1 : 0);
+		imx_gpio_set_output(&leds[led_nr-1].green, g ? 1 : 0);
+		imx_gpio_set_output(&leds[led_nr-1].blue,  b ? 1 : 0);
+	} else {
+		imx_gpio_set_output(&led_som, g ? 1 : 0);
+	}
 
 	return RTEMS_SUCCESSFUL;
+}
+
+void
+grisp_led_set_som(bool on)
+{
+	rtems_status_code sc;
+	sc = grisp_led_set(LED_SOM, false, on, false);
+	assert(sc == RTEMS_SUCCESSFUL);
 }
 #endif
 

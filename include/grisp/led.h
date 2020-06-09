@@ -41,6 +41,7 @@ extern "C" {
 rtems_status_code grisp_led_set(int led_nr, bool r, bool g, bool b);
 void	grisp_led_set1(bool r, bool g, bool b);
 void	grisp_led_set2(bool r, bool g, bool b);
+void	grisp_led_set_som(bool on);
 
 #ifdef __cplusplus
 }
