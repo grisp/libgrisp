@@ -56,9 +56,8 @@
 #include <grisp/init.h>
 #if defined(LIBBSP_ARM_ATSAM_BSP_H)
 #include <grisp/pin-config.h>
-#elif defined(LIBBSP_ARM_IMX_BSP_H)
-#include <rtems/dhcpcd.h>
 #endif
+#include <rtems/dhcpcd.h>
 
 #define PRIO_INIT_TASK		(RTEMS_MAXIMUM_PRIORITY - 1)
 #define PRIO_MEDIA_SERVER	200
@@ -184,54 +183,6 @@ grisp_init_network_ifconfig_lo0(void)
 	assert(exit_code == EX_OK);
 }
 
-#if defined(LIBBSP_ARM_ATSAM_BSP_H)
-static void
-network_dhcpcd_task(rtems_task_argument arg)
-{
-	int exit_code;
-	const char *cconf = (const char*) arg;
-	char* conf = NULL;
-	if (cconf && (access(cconf, F_OK | R_OK ) != -1) && (conf = strdup(cconf))) {
-		char *dhcpcd[] = {"dhcpcd", "-f", conf, NULL};
-		exit_code = rtems_bsd_command_dhcpcd(RTEMS_BSD_ARGC(dhcpcd), dhcpcd);
-		free(conf);
-	} else {
-		char *dhcpcd[] = {"dhcpcd", NULL};
-		exit_code = rtems_bsd_command_dhcpcd(RTEMS_BSD_ARGC(dhcpcd), dhcpcd);
-	}
-
-	assert(exit_code == EXIT_SUCCESS);
-
-	rtems_task_delete(RTEMS_SELF);
-}
-
-void
-grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf)
-{
-	rtems_status_code sc;
-	rtems_id id;
-
-	sc = rtems_task_create(
-		rtems_build_name('D', 'H', 'C', 'P'),
-		prio,
-		2 * RTEMS_MINIMUM_STACK_SIZE,
-		RTEMS_DEFAULT_MODES,
-		RTEMS_FLOATING_POINT,
-		&id
-	);
-	assert(sc == RTEMS_SUCCESSFUL);
-
-	sc = rtems_task_start(id, network_dhcpcd_task, (rtems_task_argument) conf);
-	assert(sc == RTEMS_SUCCESSFUL);
-}
-
-void
-grisp_init_dhcpcd(rtems_task_priority prio)
-{
-	grisp_init_dhcpcd_with_config(prio, NULL);
-}
-
-#elif defined(LIBBSP_ARM_IMX_BSP_H)
 void
 grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf)
 {
@@ -262,7 +213,6 @@ grisp_init_dhcpcd(rtems_task_priority prio)
 {
 	grisp_init_dhcpcd_with_config(prio, NULL);
 }
-#endif
 
 void
 grisp_init_libbsd(void)
