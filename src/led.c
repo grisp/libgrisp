@@ -163,7 +163,7 @@ void
 grisp_led_set_som(bool on)
 {
 	rtems_status_code sc;
-	sc = grisp_led_set(LED_SOM, false, !on, false);
+	sc = grisp_led_set(LED_SOM, false, on, false);
 	assert(sc == RTEMS_SUCCESSFUL);
 }
 #endif
