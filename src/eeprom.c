@@ -40,7 +40,12 @@
 #include <unistd.h>
 #include <stdio.h>
 
-static const char eeprom_path[] = "/dev/i2c-0.eeprom-0";
+static const char eeprom_path[] =
+#if defined(LIBBSP_ARM_ATSAM_BSP_H)
+	"/dev/i2c-0.eeprom-0";
+#elif defined(LIBBSP_ARM_IMX_BSP_H)
+	"/dev/i2c-1.eeprom-0";
+#endif
 #define EEPROM_ADDR 0x57
 #define EEPROM_PAGES 16
 #define EEPROM_PAGE_SIZE 16
@@ -64,8 +69,15 @@ grisp_eeprom_init(void)
 	    0
 	);
 #elif defined(LIBBSP_ARM_IMX_BSP_H)
-#warning FIXME: Implement
-	rv = 0;
+	rv = i2c_dev_register_eeprom(
+	    "/dev/i2c-1",
+	    &eeprom_path[0],
+	    EEPROM_ADDR,
+	    1,
+	    EEPROM_PAGE_SIZE,
+	    EEPROM_SIZE,
+	    0
+	);
 #endif
 	return rv;
 }
