@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <inttypes.h>
 
 static const char eeprom_path[] =
 #if defined(LIBBSP_ARM_ATSAM_BSP_H)
@@ -152,15 +153,15 @@ grisp_eeprom_set(struct grisp_eeprom *eeprom)
 void
 grisp_eeprom_dump(struct grisp_eeprom *eeprom)
 {
-	printf("sig_version: %u\n"
-	    "serial: %lu\n"
-	    "batch_nr: %u\n"
-	    "prod_year: %u\n"
-	    "prod_month: %u\n"
-	    "prod_day: %u\n"
-	    "vers_major: %u\n"
-	    "vers_minor: %u\n"
-	    "ass_var: %u\n"
+	printf("sig_version: %" PRIu8 "\n"
+	    "serial: %" PRIu32 "\n"
+	    "batch_nr: %" PRIu16 "\n"
+	    "prod_year: %" PRIu16 "\n"
+	    "prod_month: %" PRIu8 "\n"
+	    "prod_day: %" PRIu8 "\n"
+	    "vers_major: %" PRIu8 "\n"
+	    "vers_minor: %" PRIu8 "\n"
+	    "ass_var: %" PRIu8 "\n"
 	    "mac_addr: %02x:%02x:%02x:%02x:%02x:%02x\n"
 	    "crc16: %04x\n",
 	    eeprom->sig_version,
