@@ -39,6 +39,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stddef.h>
 
 static const char eeprom_path[] =
 #if defined(LIBBSP_ARM_ATSAM_BSP_H)
@@ -106,9 +107,17 @@ grisp_eeprom_get(struct grisp_eeprom *eeprom)
 	}
 
 	crc = grisp_eeprom_crc16(crc, (void*)eeprom,
-	    sizeof(*eeprom) - sizeof(eeprom->crc16));
+	    offsetof(struct grisp_eeprom, crc16));
 	if (crc != eeprom->crc16) {
-		return -1;
+		/*
+		 * Workarround: Some earlier versions included the CRC16 field
+		 * into the calculation. Let's hope it was at least zeroed out.
+		 */
+		uint8_t tempbuf[2] = {0, 0};
+		crc = grisp_eeprom_crc16(crc, tempbuf, sizeof(tempbuf));
+		if (crc != eeprom->crc16) {
+			return -1;
+		}
 	}
 
 	return 0;
@@ -122,7 +131,7 @@ grisp_eeprom_set(struct grisp_eeprom *eeprom)
 	uint16_t crc = EEPROM_CRC_START_VALUE;
 
 	crc = grisp_eeprom_crc16(crc, (void*)eeprom,
-	    sizeof(*eeprom) - sizeof(eeprom->crc16));
+	    offsetof(struct grisp_eeprom, crc16));
 	eeprom->crc16 = crc;
 
 	fd = open(&eeprom_path[0], O_WRONLY);

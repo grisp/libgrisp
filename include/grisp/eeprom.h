@@ -41,9 +41,20 @@ extern "C" {
 
 #define GRISP_EEPROM_SIG_VERSION 1
 
+/*
+ * Note regarding padding:
+ *
+ * The structure originally didn't contain the padding fields. But the compiler
+ * added them implicitly. So all programmed GRiSP1 out there have it. With
+ * adding it explicitly and adding a __attribute__((packed)), we make sure that
+ * it is fixed for future compiler optimizations.
+ */
+
 struct grisp_eeprom {
 	/** Version of the signature block. Always GRISP_EEPROM_SIG_VERSION. */
 	uint8_t sig_version;
+	/** Explicit padding. The compiler adds this anyway. */
+	uint8_t padding1[3];
 	/** Serial number of the board. */
 	uint32_t serial;
 	/** Production batch. */
@@ -62,9 +73,13 @@ struct grisp_eeprom {
 	uint8_t ass_var;
 	/** MAC address of the WiFi module. */
 	uint8_t mac_addr[6];
+	/** Explicit padding. The compiler adds this anyway. */
+	uint8_t padding2[1];
 	/** CRC for the EEPROM. */
 	uint16_t crc16;
-};
+	/** Explicit padding to have a length that is 4 Byte dividable. */
+	uint8_t padding3[2];
+} __attribute__((packed));
 
 /**
  * Create EEPROM device.
