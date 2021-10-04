@@ -39,6 +39,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stddef.h>
+#include <inttypes.h>
 
 static const char eeprom_path[] =
 #if defined(LIBBSP_ARM_ATSAM_BSP_H)
@@ -106,9 +108,17 @@ grisp_eeprom_get(struct grisp_eeprom *eeprom)
 	}
 
 	crc = grisp_eeprom_crc16(crc, (void*)eeprom,
-	    sizeof(*eeprom) - sizeof(eeprom->crc16));
+	    offsetof(struct grisp_eeprom, crc16));
 	if (crc != eeprom->crc16) {
-		return -1;
+		/*
+		 * Workarround: Some earlier versions included the CRC16 field
+		 * into the calculation. Let's hope it was at least zeroed out.
+		 */
+		uint8_t tempbuf[2] = {0, 0};
+		crc = grisp_eeprom_crc16(crc, tempbuf, sizeof(tempbuf));
+		if (crc != eeprom->crc16) {
+			return -1;
+		}
 	}
 
 	return 0;
@@ -122,7 +132,7 @@ grisp_eeprom_set(struct grisp_eeprom *eeprom)
 	uint16_t crc = EEPROM_CRC_START_VALUE;
 
 	crc = grisp_eeprom_crc16(crc, (void*)eeprom,
-	    sizeof(*eeprom) - sizeof(eeprom->crc16));
+	    offsetof(struct grisp_eeprom, crc16));
 	eeprom->crc16 = crc;
 
 	fd = open(&eeprom_path[0], O_WRONLY);
@@ -143,15 +153,15 @@ grisp_eeprom_set(struct grisp_eeprom *eeprom)
 void
 grisp_eeprom_dump(struct grisp_eeprom *eeprom)
 {
-	printf("sig_version: %u\n"
-	    "serial: %lu\n"
-	    "batch_nr: %u\n"
-	    "prod_year: %u\n"
-	    "prod_month: %u\n"
-	    "prod_day: %u\n"
-	    "vers_major: %u\n"
-	    "vers_minor: %u\n"
-	    "ass_var: %u\n"
+	printf("sig_version: %" PRIu8 "\n"
+	    "serial: %" PRIu32 "\n"
+	    "batch_nr: %" PRIu16 "\n"
+	    "prod_year: %" PRIu16 "\n"
+	    "prod_month: %" PRIu8 "\n"
+	    "prod_day: %" PRIu8 "\n"
+	    "vers_major: %" PRIu8 "\n"
+	    "vers_minor: %" PRIu8 "\n"
+	    "ass_var: %" PRIu8 "\n"
 	    "mac_addr: %02x:%02x:%02x:%02x:%02x:%02x\n"
 	    "crc16: %04x\n",
 	    eeprom->sig_version,
