@@ -1,11 +1,5 @@
-/*
- * Copyright (c) 2016 embedded brains GmbH.  All rights reserved.
- *
- *  embedded brains GmbH
- *  Dornierstr. 4
- *  82178 Puchheim
- *  Germany
- *  <rtems@embedded-brains.de>
+/* Copyright (c) 2021 Peer Stritzinger GmbH, All rights reserved.
+ * Aumuellerstr. 14, 82216 Maisach, Germany <info@stritzinger.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,47 +23,28 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GRISP_INIT_H
-#define GRISP_INIT_H
-
-#include <rtems.h>
-#include <grisp.h>
+#ifndef GRISP_H
+#define GRISP_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#if defined(GRISP_PLATFORM_GRISP_BASE)
-#define GRISP_SPI_DEVICE "/dev/spibus"
-#define GRISP_I2C0_DEVICE "/dev/i2c-0"
-#define GRISP_I2C1_DEVICE "/dev/i2c-1"
-#elif defined(GRISP_PLATFORM_GRISP2)
-#define GRISP_SPI_FDT_ALIAS "spi0"
-#define GRISP_SPI_DEVICE "/dev/spibus"
-#define GRISP_I2C0_FDT_ALIAS "i2c0"
-#define GRISP_I2C0_DEVICE "/dev/i2c-0"
-#define GRISP_I2C1_FDT_ALIAS "i2c1"
-#define GRISP_I2C1_DEVICE "/dev/i2c-1"
+#include <bsp.h>
+
+#ifdef LIBBSP_ARM_ATSAM_BSP_H
+#define GRISP
+#define GRISP_PLATFORM_GRISP_BASE
+#define GRISP_PLATFORM "grisp_base"
 #endif
-
-typedef void (*grisp_check_and_create_wlandev)(void);
-
-void	grisp_init_buses(void);
-void	grisp_init_libbsd(void);
-void	grisp_init_sd_card(void);
-void	grisp_init_lower_self_prio(void);
-rtems_status_code grisp_init_wait_for_sd(void);
-void	grisp_saf1761_basic_init(void);
-void	grisp_wlan_power_up(void);
-void	grisp_wlan_power_down(void);
-void	grisp_init_wpa_supplicant(const char *conf_file,
-	    rtems_task_priority prio,
-	    grisp_check_and_create_wlandev create_wlan);
-void	grisp_init_dhcpcd(rtems_task_priority prio);
-void	grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf);
+#if defined LIBBSP_ARM_IMX_BSP_H
+#define GRISP
+#define GRISP_PLATFORM_GRISP2
+#define GRISP_PLATFORM "grisp2"
+#endif
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-#endif /* GRISP_INIT_H */
+#endif /* GRISP_H */

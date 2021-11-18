@@ -49,15 +49,25 @@
 #include <rtems/score/armv7m.h>
 #include <rtems/shell.h>
 #include <rtems/stringto.h>
+#include <rtems/dhcpcd.h>
+
+#include <grisp.h>
+#include <grisp/init.h>
+#ifdef GRISP_PLATFORM_GRISP_BASE
+#include <grisp/pin-config.h>
+#endif
 
 #include <bsp.h>
 #include <bsp/irq.h>
-
-#include <grisp/init.h>
-#if defined(LIBBSP_ARM_ATSAM_BSP_H)
-#include <grisp/pin-config.h>
+#ifdef GRISP_PLATFORM_GRISP_BASE
+#include <bsp/i2c.h>
 #endif
-#include <rtems/dhcpcd.h>
+
+#if defined(GRISP_PLATFORM_GRISP_BASE)
+#include <bsp/atsam-spi.h>
+#include <bsp/spi.h>
+#endif
+#include <dev/spi/spi.h>
 
 #define PRIO_INIT_TASK		(RTEMS_MAXIMUM_PRIORITY - 1)
 #define PRIO_MEDIA_SERVER	200
@@ -68,6 +78,11 @@
 #define EVT_MOUNTED		RTEMS_EVENT_9
 
 #define SAF_CS			0
+
+#if defined(GRISP_PLATFORM_GRISP_BASE)
+static const atsam_spi_config spi_config = {.spi_peripheral_id = ID_SPI0,
+                                            .spi_regs = SPI0};
+#endif
 
 static rtems_id wait_mounted_task_id = RTEMS_INVALID_ID;
 
@@ -98,6 +113,31 @@ media_listener(rtems_media_event event, rtems_media_state state,
 	}
 
 	return RTEMS_SUCCESSFUL;
+}
+
+void
+grisp_init_buses() {
+	int rv = -1;
+
+#if defined(GRISP_PLATFORM_GRISP_BASE)
+	rv = spi_bus_register_atsam(GRISP_SPI_DEVICE, &spi_config);
+	assert(rv == 0);
+
+	rv = atsam_register_i2c_0();
+	assert(rv == 0);
+
+	rv = atsam_register_i2c_1();
+	assert(rv == 0);
+#elif defined(GRISP_PLATFORM_GRISP2)
+	rv = spi_bus_register_imx(GRISP_SPI_DEVICE, GRISP_SPI_FDT_ALIAS);
+	assert(rv == 0);
+
+	rv = i2c_bus_register_imx(GRISP_I2C0_DEVICE, GRISP_I2C0_FDT_ALIAS);
+	assert(rv == 0);
+
+	rv = i2c_bus_register_imx(GRISP_I2C1_DEVICE, GRISP_I2C1_FDT_ALIAS);
+	assert(rv == 0);
+#endif
 }
 
 rtems_status_code
