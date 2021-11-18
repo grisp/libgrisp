@@ -29,9 +29,11 @@
  * SUCH DAMAGE.
  */
 
+#include <grisp.h>
+#include <grisp/init.h>
 #include <grisp/eeprom.h>
 #include <bsp.h>
-#if defined(LIBBSP_ARM_ATSAM_BSP_H)
+#if defined(GRISP_PLATFORM_GRISP_BASE)
 #include <bsp/i2c.h>
 #endif
 #include <dev/i2c/eeprom.h>
@@ -42,12 +44,8 @@
 #include <stddef.h>
 #include <inttypes.h>
 
-static const char eeprom_path[] =
-#if defined(LIBBSP_ARM_ATSAM_BSP_H)
-	"/dev/i2c-0.eeprom-0";
-#elif defined(LIBBSP_ARM_IMX_BSP_H)
-	"/dev/i2c-1.eeprom-0";
-#endif
+#define GRISP_EEPROM_DEVICE ".eeprom-0"
+#define EEPROM_PATH GRISP_I2C0_DEVICE GRISP_EEPROM_DEVICE
 #define EEPROM_ADDR 0x57
 #define EEPROM_PAGES 16
 #define EEPROM_PAGE_SIZE 16
@@ -59,28 +57,15 @@ int
 grisp_eeprom_init(void)
 {
 	int rv;
-
-#if defined(LIBBSP_ARM_ATSAM_BSP_H)
 	rv = i2c_dev_register_eeprom(
-	    ATSAM_I2C_0_BUS_PATH,
-	    &eeprom_path[0],
+	    GRISP_I2C0_DEVICE,
+	    GRISP_EEPROM_DEVICE,
 	    EEPROM_ADDR,
 	    1,
 	    EEPROM_PAGE_SIZE,
 	    EEPROM_SIZE,
 	    0
 	);
-#elif defined(LIBBSP_ARM_IMX_BSP_H)
-	rv = i2c_dev_register_eeprom(
-	    "/dev/i2c-1",
-	    &eeprom_path[0],
-	    EEPROM_ADDR,
-	    1,
-	    EEPROM_PAGE_SIZE,
-	    EEPROM_SIZE,
-	    0
-	);
-#endif
 	return rv;
 }
 
@@ -91,7 +76,7 @@ grisp_eeprom_get(struct grisp_eeprom *eeprom)
 	int rv;
 	uint16_t crc = EEPROM_CRC_START_VALUE;
 
-	fd = open(&eeprom_path[0], O_RDONLY);
+	fd = open(GRISP_EEPROM_DEVICE, O_RDONLY);
 	if (fd == -1) {
 		return fd;
 	}
@@ -135,7 +120,7 @@ grisp_eeprom_set(struct grisp_eeprom *eeprom)
 	    offsetof(struct grisp_eeprom, crc16));
 	eeprom->crc16 = crc;
 
-	fd = open(&eeprom_path[0], O_WRONLY);
+	fd = open(GRISP_EEPROM_DEVICE, O_WRONLY);
 	if (fd == -1) {
 		return fd;
 	}

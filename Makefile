@@ -15,6 +15,7 @@ all: $(BUILDDIR) $(LIB)
 install: all
 	mkdir -p $(PROJECT_INCLUDE)/grisp
 	install -m 644 $(LIB) $(PROJECT_LIB)
+	install -m 644 include/grisp.h $(PROJECT_INCLUDE)
 	install -m 644 include/grisp/*.h $(PROJECT_INCLUDE)/grisp
 
 $(BUILDDIR):
