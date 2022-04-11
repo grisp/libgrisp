@@ -36,11 +36,24 @@ extern "C" {
 #define GRISP
 #define GRISP_PLATFORM_GRISP_BASE
 #define GRISP_PLATFORM "grisp_base"
+#define grisp_is_industrialgrisp() false
 #endif
 #if defined LIBBSP_ARM_IMX_BSP_H
 #define GRISP
 #define GRISP_PLATFORM_GRISP2
 #define GRISP_PLATFORM "grisp2"
+
+#include <bsp/fdt.h>
+#include <libfdt.h>
+
+static inline bool grisp_is_industrialgrisp(void)
+{
+	const void *fdt = bsp_fdt_get();
+	const int node = fdt_path_offset(fdt, "/");
+	const char igrisp_compat[] = "embeddedbrains,industrialgrisp";
+
+	return (fdt_node_check_compatible(fdt, node, igrisp_compat) == 0);
+}
 #endif
 
 #ifdef __cplusplus
