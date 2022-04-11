@@ -50,6 +50,10 @@ extern "C" {
 #define GRISP_I2C0_DEVICE "/dev/i2c-0"
 #define GRISP_I2C1_FDT_ALIAS "i2c1"
 #define GRISP_I2C1_DEVICE "/dev/i2c-1"
+
+#define GRISP_INDUSTRIAL_SPI_ONBOARD_FDT_ALIAS "spi0"
+#define GRISP_INDUSTRIAL_SPI_PMOD_FDT_ALIAS "spi2"
+#define GRISP_INDUSTRIAL_I2C_FDT_ALIAS "i2c0"
 #endif
 
 typedef void (*grisp_check_and_create_wlandev)(void);
