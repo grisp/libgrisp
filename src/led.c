@@ -32,6 +32,7 @@
 #include <bsp.h>
 #include <assert.h>
 
+#include <grisp.h>
 #include <grisp/led.h>
 
 #ifdef LIBBSP_ARM_ATSAM_BSP_H
@@ -109,7 +110,8 @@ static struct {
 	struct imx_gpio_pin green;
 	struct imx_gpio_pin blue;
 } leds[2];
-struct imx_gpio_pin led_som;
+static struct imx_gpio_pin led_som;
+static bool only_green_led;
 
 static void
 grisp2_init_led_by_fdt(
@@ -133,12 +135,19 @@ grisp2_init_leds(void)
 	const void *fdt;
 
 	fdt = bsp_fdt_get();
-	grisp2_init_led_by_fdt(&leds[0].red,   fdt, "/leds/grisp-rgb1-red");
-	grisp2_init_led_by_fdt(&leds[0].green, fdt, "/leds/grisp-rgb1-green");
-	grisp2_init_led_by_fdt(&leds[0].blue,  fdt, "/leds/grisp-rgb1-blue");
-	grisp2_init_led_by_fdt(&leds[1].red,   fdt, "/leds/grisp-rgb2-red");
-	grisp2_init_led_by_fdt(&leds[1].green, fdt, "/leds/grisp-rgb2-green");
-	grisp2_init_led_by_fdt(&leds[1].blue,  fdt, "/leds/grisp-rgb2-blue");
+	if (grisp_is_industrialgrisp()) {
+		grisp2_init_led_by_fdt(&leds[0].green, fdt, "/leds/igrisp-mcu-led");
+		grisp2_init_led_by_fdt(&leds[1].green, fdt, "/leds/igrisp-rfid-led");
+		only_green_led = true;
+	} else {
+		grisp2_init_led_by_fdt(&leds[0].red,   fdt, "/leds/grisp-rgb1-red");
+		grisp2_init_led_by_fdt(&leds[0].green, fdt, "/leds/grisp-rgb1-green");
+		grisp2_init_led_by_fdt(&leds[0].blue,  fdt, "/leds/grisp-rgb1-blue");
+		grisp2_init_led_by_fdt(&leds[1].red,   fdt, "/leds/grisp-rgb2-red");
+		grisp2_init_led_by_fdt(&leds[1].green, fdt, "/leds/grisp-rgb2-green");
+		grisp2_init_led_by_fdt(&leds[1].blue,  fdt, "/leds/grisp-rgb2-blue");
+		only_green_led = false;
+	}
 	grisp2_init_led_by_fdt(&led_som,       fdt, "/leds/phycore-green");
 }
 
@@ -149,9 +158,11 @@ grisp_led_set(int led_nr, bool r, bool g, bool b)
 	pthread_once(&once, grisp2_init_leds);
 
 	if (led_nr != LED_SOM) {
-		imx_gpio_set_output(&leds[led_nr-1].red,   r ? 1 : 0);
+		if (!only_green_led) {
+			imx_gpio_set_output(&leds[led_nr-1].red,   r ? 1 : 0);
+			imx_gpio_set_output(&leds[led_nr-1].blue,  b ? 1 : 0);
+		}
 		imx_gpio_set_output(&leds[led_nr-1].green, g ? 1 : 0);
-		imx_gpio_set_output(&leds[led_nr-1].blue,  b ? 1 : 0);
 	} else {
 		imx_gpio_set_output(&led_som, g ? 1 : 0);
 	}
