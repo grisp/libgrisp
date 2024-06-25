@@ -88,8 +88,10 @@ static rtems_id wait_mounted_task_id = RTEMS_INVALID_ID;
 
 static rtems_status_code
 media_listener(rtems_media_event event, rtems_media_state state,
-    const char *src, const char *dest, void *arg)
+    const char *src, const char *dest, const char *arg)
 {
+  	char fdt_target[192] = "";
+
 	printf(
 		"media listener: event = %s, state = %s, src = %s",
 		rtems_media_event_description(event),
@@ -102,13 +104,20 @@ media_listener(rtems_media_event event, rtems_media_state state,
 	}
 
 	if (arg != NULL) {
-		printf(", arg = %p\n", arg);
+  		strlcpy(fdt_target, arg, 192);
+		size_t length = strlen(arg);
+		if (fdt_target[length - 1] == '/') {
+			fdt_target[length - 1] = '\0';
+		}
+		printf(", fdt_target = %s\n", fdt_target);
 	}
 
 	printf("\n");
 
 	if (event == RTEMS_MEDIA_EVENT_MOUNT &&
-	    state == RTEMS_MEDIA_STATE_SUCCESS) {
+	    state == RTEMS_MEDIA_STATE_SUCCESS &&
+		dest != NULL && arg != NULL &&
+		strcmp(dest, fdt_target) == 0) {
 		rtems_event_send(wait_mounted_task_id, EVT_MOUNTED);
 	}
 
@@ -168,7 +177,7 @@ grisp_init_lower_self_prio(void)
 }
 
 void
-grisp_init_sd_card(void)
+grisp_init_sd_card(const char *rootdir)
 {
 	rtems_status_code sc;
 
@@ -180,7 +189,7 @@ grisp_init_sd_card(void)
 	sc = rtems_media_initialize();
 	assert(sc == RTEMS_SUCCESSFUL);
 
-	sc = rtems_media_listener_add(media_listener, NULL);
+	sc = rtems_media_listener_add(media_listener, rootdir);
 	assert(sc == RTEMS_SUCCESSFUL);
 
 	sc = rtems_media_server_initialize(
