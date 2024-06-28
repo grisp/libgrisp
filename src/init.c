@@ -223,6 +223,47 @@ grisp_init_network_ifconfig_lo0(void)
 	assert(exit_code == EX_OK);
 }
 
+// Gets the start position of value from "key=value" string
+char *
+get_env_value(char *const env) {
+	unsigned pos = 0;
+	for (unsigned i = 0; env[i] != '\0'; i++) {
+        if (env[i] == '=') pos = i;
+    }
+	assert(pos != 0);
+	return env + ++pos * sizeof(char);
+}
+
+void
+write_resolv_conf(char * dns_ips) {
+	FILE *file = fopen("/etc/resolv.conf", "w");
+    if (file == NULL) {
+        perror("Error opening /etc/resolv.conf");
+    } else {
+        fprintf(file, "domain grisp.local\n");
+        char* token = strtok(dns_ips, " ");
+        while (token != NULL) {
+            fprintf(file, "nameserver %s\n", token);
+            token = strtok(NULL, " ");
+		}
+        fclose(file);
+	}
+}
+
+void
+grisp_dhcpcd_hook_handler(rtems_dhcpcd_hook *hook, char *const *env) {
+	(void)hook;
+	while (*env != NULL) {
+        if (strstr(*env, "new_domain_name_servers") != NULL) {
+            char *ip_list_ptr = get_env_value(*env);
+            char *dns_ips = strdup(ip_list_ptr);
+            write_resolv_conf(dns_ips);
+            free(dns_ips);
+		}
+        ++env;
+	}
+}
+
 void
 grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf)
 {
@@ -244,6 +285,12 @@ grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf)
 	}
 
 	config.priority = prio;
+
+	static rtems_dhcpcd_hook dhcpcd_hook = {
+		.name = "grisp_dhcp_handler",
+		.handler = grisp_dhcpcd_hook_handler
+	};
+	rtems_dhcpcd_add_hook(&dhcpcd_hook);
 
 	rtems_dhcpcd_start(&config);
 }
