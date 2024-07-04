@@ -253,14 +253,24 @@ write_resolv_conf(char * dns_ips) {
 void
 grisp_dhcpcd_hook_handler(rtems_dhcpcd_hook *hook, char *const *env) {
 	(void)hook;
+	char *dns_ips = NULL;
+	bool skip_resolv = false;
 	while (*env != NULL) {
         if (strstr(*env, "new_domain_name_servers") != NULL) {
             char *ip_list_ptr = get_env_value(*env);
-            char *dns_ips = strdup(ip_list_ptr);
-            write_resolv_conf(dns_ips);
-            free(dns_ips);
+            dns_ips = strdup(ip_list_ptr);
+		}
+		if (strstr(*env, "skip_hooks") != NULL &&
+			strstr(*env, "resolv.conf") != NULL) {
+            skip_resolv = true;
 		}
         ++env;
+	}
+	if(dns_ips != NULL) {
+		if (!skip_resolv){
+			write_resolv_conf(dns_ips);
+		}
+        free(dns_ips);
 	}
 }
 
