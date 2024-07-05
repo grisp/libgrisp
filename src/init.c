@@ -275,25 +275,13 @@ grisp_dhcpcd_hook_handler(rtems_dhcpcd_hook *hook, char *const *env) {
 }
 
 void
-grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf)
+grisp_init_dhcpcd(rtems_task_priority prio)
 {
 	static char *argv_no_conf[] = { "dhcpcd", NULL };
-	static char *argv_conf[] = { "dhcpcd", "-f", NULL, NULL };
-	char *conf_copy = NULL;
 	static rtems_dhcpcd_config config = {};
 
-	if (conf != NULL) {
-		conf_copy = strdup(conf);
-	}
-	if (conf_copy != NULL) {
-		argv_conf[2] = conf_copy;
-		config.argv = argv_conf;
-		config.argc = RTEMS_BSD_ARGC(argv_conf);
-	} else {
-		config.argv = argv_no_conf;
-		config.argc = RTEMS_BSD_ARGC(argv_no_conf);
-	}
-
+	config.argv = argv_no_conf;
+	config.argc = RTEMS_BSD_ARGC(argv_no_conf);
 	config.priority = prio;
 
 	static rtems_dhcpcd_hook dhcpcd_hook = {
@@ -303,12 +291,6 @@ grisp_init_dhcpcd_with_config(rtems_task_priority prio, const char *conf)
 	rtems_dhcpcd_add_hook(&dhcpcd_hook);
 
 	rtems_dhcpcd_start(&config);
-}
-
-void
-grisp_init_dhcpcd(rtems_task_priority prio)
-{
-	grisp_init_dhcpcd_with_config(prio, NULL);
 }
 
 void
