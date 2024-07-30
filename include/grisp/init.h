@@ -50,13 +50,17 @@ extern "C" {
 #define GRISP_I2C0_DEVICE "/dev/i2c-0"
 #define GRISP_I2C1_FDT_ALIAS "i2c1"
 #define GRISP_I2C1_DEVICE "/dev/i2c-1"
+
+#define GRISP_INDUSTRIAL_SPI_ONBOARD_FDT_ALIAS "spi0"
+#define GRISP_INDUSTRIAL_SPI_PMOD_FDT_ALIAS "spi2"
+#define GRISP_INDUSTRIAL_I2C_FDT_ALIAS "i2c0"
 #endif
 
 typedef void (*grisp_check_and_create_wlandev)(void);
 
 void	grisp_init_buses(void);
 void	grisp_init_libbsd(void);
-void	grisp_init_sd_card(void);
+void	grisp_init_sd_card(const char *rootdir);
 void	grisp_init_lower_self_prio(void);
 rtems_status_code grisp_init_wait_for_sd(void);
 void	grisp_saf1761_basic_init(void);
