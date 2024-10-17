@@ -55,6 +55,12 @@ static inline bool grisp_is_industrialgrisp(void)
 	return (fdt_node_check_compatible(fdt, node, igrisp_compat) == 0);
 }
 #endif
+#if defined LIBBSP_ARM_STM32U5_BSP_H
+#define GRISP
+#define GRISP_PLATFORM_GRISP_NANO
+#define GRISP_PLATFORM "grisp_nano"
+#define grisp_is_industrialgrisp() false
+#endif
 
 #ifdef __cplusplus
 }
