@@ -32,6 +32,14 @@
 #include <grisp.h>
 #include <grisp/init.h>
 #include <grisp/eeprom.h>
+
+#if defined(GRISP_PLATFORM_GRISP_NANO)
+/*
+ * GRiSP Nano doesn't have an RTEMS I2C interface. So this is not supported.
+ *
+ * Don't define the functions so that linking doesn't work.
+ */
+#else /* !GRISP_PLATFORM_GRISP_NANO */
 #include <bsp.h>
 #if defined(GRISP_PLATFORM_GRISP_BASE)
 #include <bsp/i2c.h>
@@ -167,3 +175,4 @@ grisp_eeprom_dump(struct grisp_eeprom *eeprom)
 	    eeprom->crc16
 	);
 }
+#endif /* GRISP_PLATFORM_GRISP_NANO */
