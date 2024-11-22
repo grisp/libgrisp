@@ -177,6 +177,25 @@ grisp_led_set_som(bool on)
 	sc = grisp_led_set(LED_SOM, false, on, false);
 	assert(sc == RTEMS_SUCCESSFUL);
 }
+
+#elif defined LIBBSP_ARM_STM32U5_BSP_H
+#include <bsp/fdt.h>
+#include <libfdt.h>
+#include <pthread.h>
+#include <stm32u5xx_hal_gpio.h>
+
+
+rtems_status_code
+grisp_led_set(int led_nr, bool r, bool g, bool b)
+{
+    return RTEMS_SUCCESSFUL;
+}
+
+void
+grisp_led_set_som(bool on)
+{
+    return on;
+}
 #endif
 
 void

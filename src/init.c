@@ -452,4 +452,20 @@ grisp_wlan_power_down(void)
 {
 #warning FIXME: Implement
 }
+
+#elif defined LIBBSP_ARM_STM32U5_BSP_H
+void
+grisp_saf1761_basic_init(void)
+{
+}
+
+void
+grisp_wlan_power_up(void)
+{
+}
+
+void
+grisp_wlan_power_down(void)
+{
+}
 #endif
