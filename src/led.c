@@ -177,6 +177,51 @@ grisp_led_set_som(bool on)
 	sc = grisp_led_set(LED_SOM, false, on, false);
 	assert(sc == RTEMS_SUCCESSFUL);
 }
+
+#elif defined(GRISP_PLATFORM_GRISP_NANO)
+
+#include <pthread.h>
+#include <stm32u5xx_hal_gpio.h>
+
+#define LED1_GPIO_PORT GPIOE
+#define LED1_PIN GPIO_PIN_9
+#define LED2_GPIO_PORT GPIOB
+#define LED2_PIN GPIO_PIN_11
+
+static void
+grisp_nano_init_leds(void)
+{
+	GPIO_InitTypeDef GPIO_InitStruct;
+
+	GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull  = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	GPIO_InitStruct.Pin = LED1_PIN;
+	HAL_GPIO_Init(LED1_GPIO_PORT, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = LED2_PIN;
+	HAL_GPIO_Init(LED2_GPIO_PORT, &GPIO_InitStruct);
+}
+
+rtems_status_code
+grisp_led_set(int led_nr, bool r, bool g, bool b)
+{
+	static pthread_once_t once = PTHREAD_ONCE_INIT;
+	pthread_once(&once, grisp_nano_init_leds);
+
+	GPIO_PinState state = GPIO_PIN_RESET;
+	if (r || g || b) {
+		state = GPIO_PIN_SET;
+	}
+
+	if (led_nr == 1) {
+		HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, state);
+	} else if (led_nr == 2) {
+		HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, state);
+	}
+
+	return RTEMS_SUCCESSFUL;
+}
 #endif
 
 void
