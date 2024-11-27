@@ -64,6 +64,12 @@ RTEMS_BSD_DRIVER_USB_SAF1761_OTG((unsigned long)EBI_CS0_ADDR, PIOC_IRQn);
 SYSINIT_DRIVER_REFERENCE(regfix, simplebus);
 SYSINIT_DRIVER_REFERENCE(ksz8091rnb, miibus);
 #include <bsp/nexus-devices.h>
+
+#elif defined(LIBBSP_ARM_STM32U5_BSP_H)
+#include <stm32u5xx.h>
+
+RTEMS_BSD_DRIVER_ST_SDMMC(0, SDMMC1_BASE, DLYB_SDMMC1_BASE, SDMMC1_IRQn);
+RTEMS_BSD_DRIVER_MMC;
 #endif
 
 #endif /* GRISP_LIBBSD_NEXUS_CONFIG_H */
