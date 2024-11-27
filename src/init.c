@@ -320,7 +320,7 @@ grisp_init_libbsd(void)
 	assert(sc == RTEMS_SUCCESSFUL);
 }
 
-#if defined(LIBBSP_ARM_ATSAM_BSP_H)
+#if defined(GRISP_PLATFORM_GRISP_BASE)
 void
 grisp_saf1761_basic_init(void)
 {
@@ -434,7 +434,7 @@ grisp_wlan_power_down(void)
 	const Pin wlan_en = GRISP_WLAN_EN;
 	PIO_Set(&wlan_en);
 }
-#elif defined(LIBBSP_ARM_IMX_BSP_H)
+#elif defined(GRISP_PLATFORM_GRISP2)
 void
 grisp_saf1761_basic_init(void)
 {
@@ -451,5 +451,23 @@ void
 grisp_wlan_power_down(void)
 {
 #warning FIXME: Implement
+}
+#elif defined(GRISP_PLATFORM_GRISP_NANO)
+void
+grisp_saf1761_basic_init(void)
+{
+	/* Not necessary for GRiSP nano */
+}
+
+void
+grisp_wlan_power_up(void)
+{
+	/* no WLAN */
+}
+
+void
+grisp_wlan_power_down(void)
+{
+	/* no WLAN */
 }
 #endif
