@@ -222,6 +222,13 @@ grisp_led_set(int led_nr, bool r, bool g, bool b)
 
 	return RTEMS_SUCCESSFUL;
 }
+
+void
+grisp_led_set_som(bool on)
+{
+	/* LED doesn't exist */
+	(void) on;
+}
 #endif
 
 void
