@@ -201,6 +201,7 @@ grisp_init_sd_card(const char *rootdir)
 	assert(sc == RTEMS_SUCCESSFUL);
 }
 
+#ifndef GRISP_PLATFORM_GRISP_NANO
 static void
 grisp_init_network_ifconfig_lo0(void)
 {
@@ -319,6 +320,16 @@ grisp_init_libbsd(void)
 	sc = rtems_task_wake_after( 2 );
 	assert(sc == RTEMS_SUCCESSFUL);
 }
+#else
+void
+grisp_init_libbsd(void)
+{
+	rtems_status_code sc;
+
+	sc = rtems_bsd_initialize();
+	assert(sc == RTEMS_SUCCESSFUL);
+}
+#endif
 
 #if defined(GRISP_PLATFORM_GRISP_BASE)
 void
